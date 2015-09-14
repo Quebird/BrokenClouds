@@ -1,5 +1,5 @@
 # BrokenClouds
-Can data be stored securely in the clouds using simple technology and distribution? 
+Can data be stored securely in the cloud using simple technology and distribution? 
 
 ## Who has access to your data in the cloud?
 You don't know.
