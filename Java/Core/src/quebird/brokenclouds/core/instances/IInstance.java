@@ -24,44 +24,14 @@
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
-package quebird.brokenclouds.core;
-
-import java.security.MessageDigest;
+package quebird.brokenclouds.core.instances;
 
 /**
- * This is a encoder/decoder.
+ * Most general specification for all instances.
  * 
  * @author Keld Oelykke
- *
  */
-public interface IRosettaStone
+public interface IInstance
 {
-  /**
-   * Resets this using the specified password.
-   * 
-   * @param password
-   *          phrase to generate hash key for
-   * @param messageDigest
-   *          MD5, SHA-1, SHA-256, etc.
-   */
-  void configure(String password, MessageDigest messageDigest);
-
-  /**
-   * Encodes the supplied data.
-   * 
-   * @param data
-   *          data to encode
-   * @return encoded data
-   */
-  byte[] encode(byte[] data);
-
-  /**
-   * Decodes the supplied data.
-   * 
-   * @param data
-   *          data to decode
-   * @return decoded data
-   */
-  byte[] decode(byte[] data);
 
 }
