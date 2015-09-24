@@ -63,6 +63,13 @@ public class RosettaStoneV1Test
     byte[] data = stringData.getBytes(charset);
     byte[] salt = UUID.randomUUID().toString().getBytes(charset);
     byte[] encodedData = rosettaStone.encode(salt, data);
+    // that was a simple encoding with byte shuffling
+    // can we split this encoded data to a set of open servers?
+    // say we have server sets A, B, C, ... each set has data replication
+    // if the number of sets we use is X
+    // we send bytes 0,X,2*X,... to A, 1,X+1,2*X+1,.. to B, etc. 
+    // the distributed byte sets will be accompanied with 
+    // an unique user id, salt, algorithm version, date, etc.
     byte[] decodedData = rosettaStone.decode(salt, encodedData);
     String stringDataDecoded = new String(decodedData);
     Assert.assertEquals(stringData, stringDataDecoded);
