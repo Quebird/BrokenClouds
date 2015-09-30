@@ -44,35 +44,57 @@ import quebird.brokenclouds.core.stones.v1.RosettaStoneV1;
  */
 public class RosettaStoneV1Test
 {
-
+  final String[] charsetNames = new String[]
+  {
+      "UTF-8",
+      "UTF-16"
+  };  
+  final String[] digestAlgorithmNames = new String[]
+  {
+      "MD5",
+      "SHA-1",
+      "SHA-256"
+  };
+  
   @Test
   public void testEncodeAndDecode() throws NoSuchAlgorithmException
   {
-    final String charsetName = "UTF-8";
-    final String messageDigestAlgorithm = "MD5";
-    final Charset charset = Charset.forName(charsetName);
-    final MessageDigest messageDigest = MessageDigest.getInstance(messageDigestAlgorithm);
-    
-    IRosettaStoneV1 rosettaStone = new RosettaStoneV1();
-    rosettaStone.setMessageDigestOrNull(messageDigest);
-    rosettaStone.setPasswordOrNull("password".getBytes(charset));
-    rosettaStone.start();
-    System.out.println("rosettaStone.getAlgorithm() = " + rosettaStone.getAlgorithm());
-    
-    String stringData = "Hello World! Hellø Wørld! 0123456789 §$!#€%&/()=?+´`¨^*'-_.:,;<>";
-    byte[] data = stringData.getBytes(charset);
-    byte[] salt = UUID.randomUUID().toString().getBytes(charset);
-    byte[] encodedData = rosettaStone.encode(salt, data);
-    // that was a simple encoding with byte shuffling
-    // can we split this encoded data to a set of open servers?
-    // say we have server sets A, B, C, ... each set has data replication
-    // if the number of sets we use is X
-    // we send bytes 0,X,2*X,... to A, 1,X+1,2*X+1,.. to B, etc. 
-    // the distributed byte sets will be accompanied with 
-    // an unique user id, salt, algorithm version, date, etc.
-    byte[] decodedData = rosettaStone.decode(salt, encodedData);
-    String stringDataDecoded = new String(decodedData);
-    Assert.assertEquals(stringData, stringDataDecoded);
+    for (int i = 0; i < 2; ++i) // bunch test
+    {
+      for (String digestAlgorithmName : digestAlgorithmNames)
+      {
+        for (String charsetName : charsetNames)
+        {
+          String stringData = "Hello World! Hellø Wørld! 0123456789 §$!#€%&/()=?+´`¨^*'-_.:,;<>";
+          System.out.println(this + ".testEncodeAndDecode(): \n\t#" + i + ": "
+              + digestAlgorithmName + " + " 
+              + charsetName + " on '" + stringData + "'");
+  
+          MessageDigest messageDigest = MessageDigest.getInstance(digestAlgorithmName);
+          Charset charset = Charset.forName(charsetName);
+          
+          IRosettaStoneV1 rosettaStone = new RosettaStoneV1();
+          rosettaStone.setMessageDigestOrNull(messageDigest);
+          rosettaStone.setPasswordOrNull("password".getBytes(charset));
+          rosettaStone.start();
+          UUID uuid = UUID.randomUUID();
+          byte[] data = stringData.getBytes(charset);
+          byte[] salt = uuid.toString().getBytes(charset);
+          byte[] encodedData = rosettaStone.encode(salt, data);
+          
+          // that was a simple encoding with byte shuffling
+          // can we split this encoded data to a set of open servers?
+          // say we have server sets A, B, C, ... each set has data replication
+          // if the number of sets we use is X
+          // we send bytes 0,X,2*X,... to A, 1,X+1,2*X+1,.. to B, etc. 
+          // the distributed byte sets will be accompanied with 
+          // an unique user id, salt, algorithm version, date, etc.
+          byte[] decodedData = rosettaStone.decode(salt, encodedData);
+          String stringDataDecoded = new String(decodedData, charset);
+          Assert.assertEquals(stringData, stringDataDecoded);
+        }
+      }
+    }
   }
 
 }

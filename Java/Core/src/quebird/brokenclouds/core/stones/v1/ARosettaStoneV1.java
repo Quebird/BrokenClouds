@@ -163,21 +163,32 @@ public abstract class ARosettaStoneV1 extends AInstance implements IRosettaStone
     this.running = running;
   }
   
-  
   /* (non-Javadoc)
    * @see quebird.brokenclouds.core.stones.v1.IRosettaStoneV1#encode(byte[], byte[])
    */
   @Override
   public byte[] encode(byte[] salt, byte[] data)
   {
+    if (this.getTrace2Console())
+    {
+      System.out.println("encode:  --- START --- [algorithm=" + this.getAlgorithm() + "]");
+    }
     // argument checks
     if (this.getChecker().isObjectNull(this, salt))
     {
       this.getFailer().failObjectNull(this, "salt");
     }
+    if (this.getTrace2Console())
+    {
+      System.out.println("encode:  salt[length=" + salt.length + "] = " + this.bytes2String(salt));
+    }
     if (this.getChecker().isObjectNull(this, data))
     {
       this.getFailer().failObjectNull(this, "data");
+    }
+    if (this.getTrace2Console())
+    {
+      System.out.println("encode:  data[length=" + data.length + "] = " + this.bytes2String(data));
     }
     
     // state checks
@@ -191,14 +202,25 @@ public abstract class ARosettaStoneV1 extends AInstance implements IRosettaStone
     {
       this.getFailer().failObjectNull(this, "MessageDigestOrNull");
     }
+
     messageDigest.reset();
     messageDigest.update(salt);
     messageDigest.update(password);
     byte[] hash = messageDigest.digest();
+    if (this.getTrace2Console())
+    {
+      System.out.println("encode: hash[length=" + hash.length + "] = " + this.bytes2String(hash));
+    }
+
     Random random = new Random();
     byte[] availablePaddingBytes = new byte[hash.length];
     random.nextBytes(availablePaddingBytes);
     int indexAvailablePaddingBytes = 0;
+    if (this.getTrace2Console())
+    {
+      System.out.println("encode: padding[length=" + availablePaddingBytes.length + "] = " 
+          + this.bytes2String(availablePaddingBytes));
+    }
    
     int[] order = this.calculateOrderedIndices(hash);
     
@@ -232,6 +254,15 @@ public abstract class ARosettaStoneV1 extends AInstance implements IRosettaStone
     }
     
     byte[] result = output;
+    if (this.getTrace2Console())
+    {
+      System.out.println("encode: output[length=" + result.length + "] = " 
+          + this.bytes2String(result));
+    }
+    if (this.getTrace2Console())
+    {
+      System.out.println("encode:  ---  END  --- [algorithm=" + this.getAlgorithm() + "]");
+    }
     
     return result;
   }
@@ -242,15 +273,27 @@ public abstract class ARosettaStoneV1 extends AInstance implements IRosettaStone
   @Override
   public byte[] decode(byte[] salt, byte[] data)
   {
+    if (this.getTrace2Console())
+    {
+      System.out.println("decode:  --- START --- [algorithm=" + this.getAlgorithm() + "]");
+    }
     
     // argument checks
     if (this.getChecker().isObjectNull(this, salt))
     {
       this.getFailer().failObjectNull(this, "salt");
     }
+    if (this.getTrace2Console())
+    {
+      System.out.println("decode:  salt[length=" + salt.length + "] = " + this.bytes2String(salt));
+    }
     if (this.getChecker().isObjectNull(this, data))
     {
       this.getFailer().failObjectNull(this, "data");
+    }
+    if (this.getTrace2Console())
+    {
+      System.out.println("decode:  data[length=" + data.length + "] = " + this.bytes2String(data));
     }
     
     // state checks
@@ -269,6 +312,10 @@ public abstract class ARosettaStoneV1 extends AInstance implements IRosettaStone
     messageDigest.update(salt);
     messageDigest.update(password);
     byte[] hash = messageDigest.digest();
+    if (this.getTrace2Console())
+    {
+      System.out.println("decode: hash[length=" + hash.length + "] = " + this.bytes2String(hash));
+    }
     
     int[] order = this.calculateOrderedIndices(hash);
  
@@ -296,6 +343,15 @@ public abstract class ARosettaStoneV1 extends AInstance implements IRosettaStone
     }
 
     byte[] result = output;
+    if (this.getTrace2Console())
+    {
+      System.out.println("decode: output[length=" + result.length + "] = " 
+          + this.bytes2String(result));
+    }
+    if (this.getTrace2Console())
+    {
+      System.out.println("decode:  ---  END  --- [algorithm=" + this.getAlgorithm() + "]");
+    }
     
     return result;
   }
@@ -310,11 +366,11 @@ public abstract class ARosettaStoneV1 extends AInstance implements IRosettaStone
 //    }
     int orderIndex = 0;
     int orderIndexLast = -1;
-    byte orderValue;
+    Byte orderValue;
     byte orderValueLast = Byte.MIN_VALUE;
     for (int i = 0; i < order.length; ++i)
     {
-      orderValue = Byte.MAX_VALUE;
+      orderValue = null;
       for (int j = 0; j < data.length; ++j)
       { // find smallest byte value that we haven't yet stored an index of
         byte value = data[j];
@@ -324,7 +380,7 @@ public abstract class ARosettaStoneV1 extends AInstance implements IRosettaStone
           orderIndex = j;
           break;
         }
-        else if (orderValueLast < value && value < orderValue)
+        else if (orderValueLast < value && (null == orderValue || value < orderValue))
         { // a bigger byte value than stored last time and it is the smallest in this iteration
           orderValue = value;
           orderIndex = j;
@@ -338,4 +394,26 @@ public abstract class ARosettaStoneV1 extends AInstance implements IRosettaStone
     return order;
   }
 
+  protected String bytes2String(byte[] bytes)
+  {
+    StringBuffer stringBuffer = new StringBuffer();
+    for (int index = 0; index < bytes.length; ++index)
+    {
+      stringBuffer.append(Byte.toString(bytes[index]));
+      stringBuffer.append(" ");
+    }
+    return stringBuffer.toString();
+  }
+  
+  private boolean trace2Console = true;
+
+  protected boolean getTrace2Console()
+  {
+    return trace2Console;
+  }
+
+  protected void setTrace2Console(boolean trace2Console)
+  {
+    this.trace2Console = trace2Console;
+  }
 }
